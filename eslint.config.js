@@ -5,6 +5,7 @@ import { includeIgnoreFile } from '@eslint/compat'
 import js from '@eslint/js'
 import { configs, plugins } from 'eslint-config-airbnb-extended'
 import { configs as eslintConfigs } from '@jenssimon/eslint-config-base'
+import vitest from '@vitest/eslint-plugin'
 import globals from 'globals'
 
 const gitignorePath = path.resolve('.', '.gitignore')
@@ -54,9 +55,39 @@ export default defineConfig(
   },
 
   {
-    files: ['elevatorsaga.d.ts'],
+    files: [
+      '**/*.test.*',
+      '**/*.spec.*',
+      '**/__tests__/**',
+      '**/__mocks__/**',
+    ],
+    plugins: {
+      vitest,
+    },
+    rules: {
+      ...vitest.configs.recommended.rules,
+    },
+  },
+
+  {
+    files: ['tests/elevator.js'],
+    rules: {
+      'class-methods-use-this': 'off',
+      'max-classes-per-file': 'off',
+    },
+  },
+
+  {
+    files: ['types/elevatorsaga.d.ts'],
     rules: {
       'unicorn/prevent-abbreviations': 'off',
+    },
+  },
+  {
+    files: ['types/global.d.ts'],
+    rules: {
+      'unicorn/require-module-specifiers': 'off',
+      'vars-on-top': 'off',
     },
   },
 )
