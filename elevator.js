@@ -1,6 +1,6 @@
 (() => {
-  const FLOOR_UP_REQUESTS = []
-  const FLOOR_DOWN_REQUESTS = []
+  const floorUpRequests = []
+  const floorDownRequests = []
 
   const addFloorRequest = (list, floorNumber) => {
     if (!list.includes(floorNumber)) {
@@ -48,13 +48,13 @@
       const floorNumber = floor.floorNum()
       highestFloor = Math.max(highestFloor, floorNumber)
 
-      floor.on('up_button_pressed', () => addFloorRequest(FLOOR_UP_REQUESTS, floorNumber))
-      floor.on('down_button_pressed', () => addFloorRequest(FLOOR_DOWN_REQUESTS, floorNumber))
+      floor.on('up_button_pressed', () => addFloorRequest(floorUpRequests, floorNumber))
+      floor.on('down_button_pressed', () => addFloorRequest(floorDownRequests, floorNumber))
     }
 
     elevator.on('idle', () => {
       const currentFloor = elevator.currentFloor()
-      const [nearestRequestedFloor] = [...FLOOR_UP_REQUESTS, ...FLOOR_DOWN_REQUESTS].toSorted((a, b) => {
+      const [nearestRequestedFloor] = [...floorUpRequests, ...floorDownRequests].toSorted((a, b) => {
         const distanceA = Math.abs(a - currentFloor)
         const distanceB = Math.abs(b - currentFloor)
         // prefer higher floors if distances are equal
@@ -85,8 +85,8 @@
       if (elevator.destinationQueue.includes(floorNumber)) return
       if (elevator.loadFactor() >= 0.9) return // Skip if elevator is too full
 
-      if ((direction === 'up' && FLOOR_UP_REQUESTS.includes(floorNumber))
-          || (direction === 'down' && FLOOR_DOWN_REQUESTS.includes(floorNumber))) {
+      if ((direction === 'up' && floorUpRequests.includes(floorNumber))
+          || (direction === 'down' && floorDownRequests.includes(floorNumber))) {
         elevator.goToFloor(floorNumber, true)
       }
     })
@@ -97,13 +97,13 @@
         elevator.goingDownIndicator(floorNumber > 0)
       }
       const [nextDestination] = elevator.destinationQueue
-      if (FLOOR_UP_REQUESTS.includes(floorNumber)
+      if (floorUpRequests.includes(floorNumber)
         && (nextDestination === undefined || floorNumber <= nextDestination)) {
-        FLOOR_UP_REQUESTS.splice(FLOOR_UP_REQUESTS.indexOf(floorNumber), 1)
+        floorUpRequests.splice(floorUpRequests.indexOf(floorNumber), 1)
       }
-      if (FLOOR_DOWN_REQUESTS.includes(floorNumber)
+      if (floorDownRequests.includes(floorNumber)
         && (nextDestination === undefined || floorNumber >= nextDestination)) {
-        FLOOR_DOWN_REQUESTS.splice(FLOOR_DOWN_REQUESTS.indexOf(floorNumber), 1)
+        floorDownRequests.splice(floorDownRequests.indexOf(floorNumber), 1)
       }
     })
   }
