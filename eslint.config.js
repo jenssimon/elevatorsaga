@@ -55,6 +55,13 @@ export default defineConfig(
   },
 
   {
+    files: ['elevator.js'],
+    rules: {
+      'class-methods-use-this': 'off',
+    },
+  },
+
+  {
     files: [
       '**/*.test.*',
       '**/*.spec.*',

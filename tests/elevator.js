@@ -1,12 +1,4 @@
 class Elevator {
-  eventHandlers
-
-  destinationQueue
-
-  goingUp
-
-  goingDown
-
   constructor() {
     this.destinationQueue = []
     this.eventHandlers = {}
@@ -48,9 +40,7 @@ class Elevator {
     return 0
   }
 
-  /**
-   * @returns {Direction | 'stopped'}
-   */
+  /** @returns {Direction | 'stopped'} */
   destinationDirection() {
     return 'stopped'
   }

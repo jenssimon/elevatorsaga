@@ -1,8 +1,4 @@
 class Floor {
-  eventHandlers
-
-  floorNumber
-
   constructor(floorNumber) {
     this.eventHandlers = {}
     this.floorNumber = floorNumber

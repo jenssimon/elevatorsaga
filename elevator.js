@@ -1,60 +1,51 @@
 (() => {
-  const floorUpRequests = []
-  const floorDownRequests = []
+  class ElevatorSaga {
+    /**
+     * @param {readonly Elevator[]} elevators
+     * @param {readonly Floor[]} floors
+     */
+    constructor(elevators, floors) {
+      this.elevators = elevators
+      this.floors = floors
 
-  const addFloorRequest = (list, floorNumber) => {
-    if (!list.includes(floorNumber)) {
-      list.push(floorNumber)
-    }
-  }
+      this.floorUpRequests = []
+      this.floorDownRequests = []
 
-  const directionFromQueue = (currentFloor, destinationQueue) => {
-    const [nextDestination] = destinationQueue
-    return currentFloor < nextDestination ? 'up' : 'down'
-  }
+      /* elevator handlers */
+      for (const elevator of this.elevators) {
+        elevator.on('idle', () => this.elevatorIdle(elevator))
+        elevator.on('floor_button_pressed', (...arguments_) => this.elevatorFloorButtonPressed(elevator, ...arguments_))
+        elevator.on('passing_floor', (...arguments_) => this.elevatorPassingFloor(elevator, ...arguments_))
+        elevator.on('stopped_at_floor', (...arguments_) => this.elevatorStoppedAtFloor(elevator, ...arguments_))
+      }
 
-  const addFloorToQueue = (floorNumber, currentFloor, destinationQueue) => {
-    const direction = directionFromQueue(currentFloor, destinationQueue)
-    const unsortedQueueWithNewFloor = [
-      ...destinationQueue,
-      floorNumber,
-    ]
-
-    const floorsInDirection = []
-    const floorsAgainstDirection = []
-
-    for (const floor of unsortedQueueWithNewFloor) {
-      if (direction === 'up') {
-        (floor >= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
-      } else {
-        (floor <= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
+      /* floor handlers */
+      for (const floor of this.floors) {
+        const floorNumber = floor.floorNum()
+        floor.on('up_button_pressed', () => {
+          if (!this.floorUpRequests.includes(floorNumber)) this.floorUpRequests.push(floorNumber)
+        })
+        floor.on('down_button_pressed', () => {
+          if (!this.floorDownRequests.includes(floorNumber)) this.floorDownRequests.push(floorNumber)
+        })
       }
     }
 
-    const sortedInDirection = floorsInDirection.toSorted((a, b) => (direction === 'up' ? a - b : b - a))
-    const sortedAgainstDirection = floorsAgainstDirection.toSorted((a, b) => (direction === 'up' ? b - a : a - b))
 
-    const queuedFloors = [...sortedInDirection, ...sortedAgainstDirection]
-    return queuedFloors
-  }
-
-
-  /** @type {ProgramInitCallback} */
-  const init = (elevators, floors) => {
-    const [elevator] = elevators
-    let highestFloor = 0
-
-    for (const floor of floors) {
-      const floorNumber = floor.floorNum()
-      highestFloor = Math.max(highestFloor, floorNumber)
-
-      floor.on('up_button_pressed', () => addFloorRequest(floorUpRequests, floorNumber))
-      floor.on('down_button_pressed', () => addFloorRequest(floorDownRequests, floorNumber))
+    update(_dt, _elevators, _floors) {
+      // Nothing yet!
     }
 
-    elevator.on('idle', () => {
+
+    /**
+     * @param {Elevator} elevator
+     */
+    elevatorIdle(elevator) {
       const currentFloor = elevator.currentFloor()
-      const [nearestRequestedFloor] = [...floorUpRequests, ...floorDownRequests].toSorted((a, b) => {
+      const [nearestRequestedFloor] = [
+        ...this.floorUpRequests,
+        ...this.floorDownRequests,
+      ].toSorted((a, b) => {
         const distanceA = Math.abs(a - currentFloor)
         const distanceB = Math.abs(b - currentFloor)
         // prefer higher floors if distances are equal
@@ -64,54 +55,122 @@
         // Do we need to take care of direction indicators here?
         elevator.goToFloor(nearestRequestedFloor)
       }
-    })
+    }
 
-    elevator.on('floor_button_pressed', (floorNumber) => {
+
+    /**
+     * @param {Elevator} elevator
+     * @param {number} floorNumber
+     */
+    elevatorFloorButtonPressed(elevator, floorNumber) {
       if (elevator.destinationQueue.includes(floorNumber)) return
 
       const currentFloor = elevator.currentFloor()
       const { destinationQueue } = elevator
 
-      const queuedFloors = addFloorToQueue(floorNumber, currentFloor, destinationQueue)
+      const queuedFloors = this.#addFloorToQueue(floorNumber, currentFloor, destinationQueue)
       elevator.destinationQueue = queuedFloors
-      const direction = directionFromQueue(currentFloor, queuedFloors)
+      const direction = this.#directionFromQueue(currentFloor, queuedFloors)
       elevator.checkDestinationQueue()
 
       elevator.goingUpIndicator(direction === 'up')
       elevator.goingDownIndicator(direction === 'down')
-    })
+    }
 
-    elevator.on('passing_floor', (floorNumber, direction) => {
+
+    /**
+     * @param {Elevator} elevator
+     * @param {number} floorNumber
+     * @param {Direction} direction
+     * @returns
+     */
+    elevatorPassingFloor(elevator, floorNumber, direction) {
       if (elevator.destinationQueue.includes(floorNumber)) return
       if (elevator.loadFactor() >= 0.9) return // Skip if elevator is too full
 
-      if ((direction === 'up' && floorUpRequests.includes(floorNumber))
-          || (direction === 'down' && floorDownRequests.includes(floorNumber))) {
+      if ((direction === 'up' && this.floorUpRequests.includes(floorNumber))
+          || (direction === 'down' && this.floorDownRequests.includes(floorNumber))) {
         elevator.goToFloor(floorNumber, true)
       }
-    })
+    }
 
-    elevator.on('stopped_at_floor', (floorNumber) => {
+
+    /**
+     * @param {Elevator} elevator
+     * @param {number} floorNumber
+     */
+    elevatorStoppedAtFloor(elevator, floorNumber) {
       if (elevator.destinationQueue.length === 0) {
-        elevator.goingUpIndicator(floorNumber < highestFloor)
+        elevator.goingUpIndicator(floorNumber < this.highestFloor)
         elevator.goingDownIndicator(floorNumber > 0)
       }
       const [nextDestination] = elevator.destinationQueue
-      if (floorUpRequests.includes(floorNumber)
+      if (this.floorUpRequests.includes(floorNumber)
         && (nextDestination === undefined || floorNumber <= nextDestination)) {
-        floorUpRequests.splice(floorUpRequests.indexOf(floorNumber), 1)
+        this.floorUpRequests.splice(this.floorUpRequests.indexOf(floorNumber), 1)
       }
-      if (floorDownRequests.includes(floorNumber)
+      if (this.floorDownRequests.includes(floorNumber)
         && (nextDestination === undefined || floorNumber >= nextDestination)) {
-        floorDownRequests.splice(floorDownRequests.indexOf(floorNumber), 1)
+        this.floorDownRequests.splice(this.floorDownRequests.indexOf(floorNumber), 1)
       }
-    })
+    }
+
+
+    get highestFloor() {
+      let highestFloor = 0
+      for (const floor of this.floors) {
+        const floorNumber = floor.floorNum()
+        highestFloor = Math.max(highestFloor, floorNumber)
+      }
+      return highestFloor
+    }
+
+
+    #addFloorToQueue(floorNumber, currentFloor, destinationQueue) {
+      const direction = this.#directionFromQueue(currentFloor, destinationQueue)
+      const unsortedQueueWithNewFloor = [
+        ...destinationQueue,
+        floorNumber,
+      ]
+
+      const floorsInDirection = []
+      const floorsAgainstDirection = []
+
+      for (const floor of unsortedQueueWithNewFloor) {
+        if (direction === 'up') {
+          (floor >= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
+        } else {
+          (floor <= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
+        }
+      }
+
+      const sortedInDirection = floorsInDirection.toSorted((a, b) => (direction === 'up' ? a - b : b - a))
+      const sortedAgainstDirection = floorsAgainstDirection.toSorted((a, b) => (direction === 'up' ? b - a : a - b))
+
+      const queuedFloors = [...sortedInDirection, ...sortedAgainstDirection]
+      return queuedFloors
+    }
+
+
+    #directionFromQueue(currentFloor, destinationQueue) {
+      const [nextDestination] = destinationQueue
+      return currentFloor < nextDestination ? 'up' : 'down'
+    }
+  }
+
+
+  let elevatorSaga
+
+  /** @type {ProgramInitCallback} */
+  const init = (elevators, floors) => {
+    elevatorSaga = new ElevatorSaga(elevators, floors)
   }
 
 
   /** @type {ProgramUpdateCallback} */
-  const update = (_dt, _elevators, _floors) => {
-    // Nothing yet!
+  const update = (dt, elevators, floors) => {
+    if (!elevatorSaga) return
+    elevatorSaga.update(dt, elevators, floors)
   }
 
   const elevator = { init, update }

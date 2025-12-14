@@ -22,6 +22,7 @@ describe('queue floors', () => {
     expect(elevator.destinationQueue).toEqual([2])
   })
 
+
   it('should queue a higher floor (going up)', async () => {
     const floors = generateFloors(5)
     const elevator = new Elevator()
@@ -34,6 +35,7 @@ describe('queue floors', () => {
 
     expect(elevator.destinationQueue).toEqual([3, 4, 1])
   })
+
 
   it('should queue a lower floor (going up)', async () => {
     const floors = generateFloors(5)
@@ -48,6 +50,7 @@ describe('queue floors', () => {
     expect(elevator.destinationQueue).toEqual([4, 1, 0])
   })
 
+
   it('should queue a higher floor (going down)', async () => {
     const floors = generateFloors(5)
     const elevator = new Elevator()
@@ -60,6 +63,7 @@ describe('queue floors', () => {
 
     expect(elevator.destinationQueue).toEqual([1, 3, 4])
   })
+
 
   it('should queue a lower floor (going down)', async () => {
     const floors = generateFloors(5)
@@ -92,6 +96,7 @@ describe('floor button pressed', () => {
     expect(elevator.goingDownIndicator()).toBe(false)
   })
 
+
   it('should go down', () => {
     const floors = generateFloors(4)
     const elevator = new Elevator()
@@ -106,6 +111,7 @@ describe('floor button pressed', () => {
     expect(elevator.goingUpIndicator()).toBe(false)
     expect(elevator.goingDownIndicator()).toBe(true)
   })
+
 
   it('shouldn\'t do anything when pressing an already queued floor', () => {
     const floors = generateFloors(5)
@@ -148,6 +154,7 @@ describe('stopped at floor', () => {
     expect(elevator.goingDownIndicator()).toBe(true)
   })
 
+
   it('should set the indicators when there are no more destinations (ground floor)', () => {
     const floors = generateFloors(4)
     const elevator = new Elevator()
@@ -164,6 +171,7 @@ describe('stopped at floor', () => {
     expect(elevator.goingUpIndicator()).toBe(true)
     expect(elevator.goingDownIndicator()).toBe(false)
   })
+
 
   it('should set the indicators when there are no more destinations (highest floor)', () => {
     const floors = generateFloors(4)
@@ -182,6 +190,7 @@ describe('stopped at floor', () => {
     expect(elevator.goingDownIndicator()).toBe(true)
   })
 
+
   it('should handle stops without any floor requests', () => {
     const floors = generateFloors(4)
     const elevator = new Elevator()
@@ -197,6 +206,7 @@ describe('stopped at floor', () => {
     expect(goingUpSpy).not.toHaveBeenCalled()
     expect(goingDownSpy).not.toHaveBeenCalled()
   })
+
 
   it('should handle stops with going up requests (going up)', () => {
     const floors = generateFloors(4)
@@ -216,6 +226,7 @@ describe('stopped at floor', () => {
     expect(goingDownSpy).not.toHaveBeenCalled()
   })
 
+
   it('should handle stops with going down requests (going up)', () => {
     const floors = generateFloors(4)
     const myFloor = floors.find((f) => f.floorNum() === 2)
@@ -234,6 +245,7 @@ describe('stopped at floor', () => {
     expect(goingDownSpy).not.toHaveBeenCalled()
   })
 
+
   it('should handle stops with going up requests (going down)', () => {
     const floors = generateFloors(4)
     const myFloor = floors.find((f) => f.floorNum() === 2)
@@ -251,6 +263,7 @@ describe('stopped at floor', () => {
     expect(goingUpSpy).not.toHaveBeenCalled()
     expect(goingDownSpy).not.toHaveBeenCalled()
   })
+
 
   it('should handle stops with going down requests (going down)', () => {
     const floors = generateFloors(4)
