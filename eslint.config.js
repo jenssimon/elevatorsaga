@@ -55,7 +55,10 @@ export default defineConfig(
   },
 
   {
-    files: ['elevator.js'],
+    files: [
+      'elevator.js',
+      'elevator.template.js',
+    ],
     rules: {
       'class-methods-use-this': 'off',
     },

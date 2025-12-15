@@ -32,6 +32,11 @@
     }
 
 
+    /**
+     * @param {Number} _dt
+     * @param {readonly Elevator[]} _elevators
+     * @param {readonly Floor[]} _floors
+     */
     update(_dt, _elevators, _floors) {
       // Nothing yet!
     }
