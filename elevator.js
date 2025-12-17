@@ -56,8 +56,7 @@
     elevatorIdle(elevator) {
       const currentFloor = elevator.currentFloor()
 
-      const elevatorIndex = this.elevators.indexOf(elevator)
-      const logPrefix = this.#logPrefix({ module: 'idle', elevator: elevatorIndex, floor: currentFloor })
+      const logPrefix = this.#logPrefix({ module: 'idle', elevator, floor: currentFloor })
       this.#log(logPrefix, 'info', 'Idles')
 
       this.#log(logPrefix, 'debug', 'floorUpRequests:', this.floorUpRequests)
@@ -73,6 +72,8 @@
           // prefer higher floors if distances are equal
           return distanceA - distanceB || b - a
         })
+
+      this.#log(logPrefix, 'debug', 'nearest requested floor %o', nearestRequestedFloor)
 
       if (nearestRequestedFloor === currentFloor) {
         if (this.floorUpRequests.includes(currentFloor)) {
@@ -106,8 +107,7 @@
     elevatorFloorButtonPressed(elevator, floorNumber) {
       const currentFloor = elevator.currentFloor()
 
-      const elevatorIndex = this.elevators.indexOf(elevator)
-      const logPrefix = this.#logPrefix({ module: 'elevator-button', elevator: elevatorIndex, floor: currentFloor })
+      const logPrefix = this.#logPrefix({ module: 'elevator-button', elevator, floor: currentFloor })
       this.#log(logPrefix, 'info', 'Elevator button for floor %o pressed on %o', floorNumber, currentFloor)
       if (elevator.destinationQueue.includes(floorNumber)) {
         this.#log(logPrefix, 'info', '...but floor %o is already in the queue', floorNumber)
@@ -135,8 +135,7 @@
      * @returns
      */
     elevatorPassingFloor(elevator, floorNumber, direction) {
-      const elevatorIndex = this.elevators.indexOf(elevator)
-      const logPrefix = this.#logPrefix({ module: 'passing', elevator: elevatorIndex, floor: floorNumber })
+      const logPrefix = this.#logPrefix({ module: 'passing', elevator, floor: floorNumber })
       this.#log(logPrefix, 'info', 'Passing floor, direction %o', direction)
 
       if (elevator.destinationQueue.includes(floorNumber)) {
@@ -168,12 +167,21 @@
      * @param {number} floorNumber
      */
     elevatorStoppedAtFloor(elevator, floorNumber) {
-      const elevatorIndex = this.elevators.indexOf(elevator)
-      const logPrefix = this.#logPrefix({ module: 'stopped', elevator: elevatorIndex, floor: floorNumber })
+      const logPrefix = this.#logPrefix({ module: 'stopped', elevator, floor: floorNumber })
 
       this.#log(logPrefix, 'info', 'Stopped')
       if (elevator.destinationQueue.length === 0) {
         this.#log(logPrefix, 'info', 'Destination queue empty')
+
+        if (elevator.destinationQueue.length === 0) {
+          if (this.floorUpRequests.includes(floorNumber)) {
+            this.floorUpRequests.splice(this.floorUpRequests.indexOf(floorNumber), 1)
+          }
+          if (this.floorDownRequests.includes(floorNumber)) {
+            this.floorDownRequests.splice(this.floorDownRequests.indexOf(floorNumber), 1)
+          }
+        }
+
         elevator.goingUpIndicator(floorNumber < this.highestFloor)
         elevator.goingDownIndicator(floorNumber > 0)
       }
@@ -233,7 +241,9 @@
     #logPrefix({ module, floor, elevator }) {
       const parts = []
       if (floor !== undefined) parts.push([' f: %o', floor])
-      if (elevator !== undefined) parts.push([' e: %o', elevator])
+      if (elevator !== undefined) {
+        parts.push([' e: %o', this.elevators.indexOf(elevator)])
+      }
       parts.push([' %o', module])
 
       return [
