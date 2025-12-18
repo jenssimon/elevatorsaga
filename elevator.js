@@ -23,18 +23,22 @@
       for (const floor of this.floors) {
         const floorNumber = floor.floorNum()
         floor.on('up_button_pressed', () => {
-          const logPrefix = this.#logPrefix({ module: 'button-up', floor: floorNumber })
+          console.group('%o - floor %o', 'button-up', floorNumber)
+          console.info('floor up pressed')
           if (!this.floorUpRequests.includes(floorNumber)) {
             this.floorUpRequests.push(floorNumber)
-            this.#log(logPrefix, 'info', ' Up button pressed')
+            console.info('floor up request added')
           }
+          console.groupEnd()
         })
         floor.on('down_button_pressed', () => {
-          const logPrefix = this.#logPrefix({ module: 'button-down', floor: floorNumber })
+          console.group('%o - floor %o', 'button-down', floorNumber)
+          console.info('floor down pressed')
           if (!this.floorDownRequests.includes(floorNumber)) {
             this.floorDownRequests.push(floorNumber)
-            this.#log(logPrefix, 'info', ' Down button pressed')
+            console.info('floor down request added')
           }
+          console.groupEnd()
         })
       }
     }
@@ -56,11 +60,11 @@
     elevatorIdle(elevator) {
       const currentFloor = elevator.currentFloor()
 
-      const logPrefix = this.#logPrefix({ module: 'idle', elevator, floor: currentFloor })
-      this.#log(logPrefix, 'info', 'Idles')
+      console.group('%o - elevator %o floor %o', 'idle', this.elevators.indexOf(elevator), currentFloor)
+      console.info('Idles')
 
-      this.#log(logPrefix, 'debug', 'floorUpRequests:', this.floorUpRequests)
-      this.#log(logPrefix, 'debug', 'floorDownRequests:', this.floorDownRequests)
+      console.debug('floorUpRequests:', this.floorUpRequests)
+      console.debug('floorDownRequests:', this.floorDownRequests)
 
       const [nearestRequestedFloor] = [
         ...this.floorUpRequests,
@@ -73,7 +77,7 @@
           return distanceA - distanceB || b - a
         })
 
-      this.#log(logPrefix, 'debug', 'nearest requested floor %o', nearestRequestedFloor)
+      console.debug('nearest requested floor %o', nearestRequestedFloor)
 
       if (nearestRequestedFloor === currentFloor) {
         if (this.floorUpRequests.includes(currentFloor)) {
@@ -81,22 +85,24 @@
           elevator.goingUpIndicator(true)
           elevator.goingDownIndicator(false)
 
-          this.#log(logPrefix, 'debug', 'set going up indicator')
+          console.debug('set going up indicator')
         } else {
           this.floorDownRequests.splice(this.floorDownRequests.indexOf(currentFloor), 1)
           elevator.goingUpIndicator(false)
           elevator.goingDownIndicator(true)
 
-          this.#log(logPrefix, 'debug', 'set going down indicator')
+          console.debug('set going down indicator')
         }
+        console.groupEnd()
         return
       }
 
       if (nearestRequestedFloor !== undefined && nearestRequestedFloor !== currentFloor) {
-        this.#log(logPrefix, 'info', '...but now goes to requested floor %o', nearestRequestedFloor)
+        console.info('...but now goes to requested floor %o', nearestRequestedFloor)
         // Do we need to take care of direction indicators here?
         elevator.goToFloor(nearestRequestedFloor)
       }
+      console.groupEnd()
     }
 
 
@@ -106,25 +112,34 @@
      */
     elevatorFloorButtonPressed(elevator, floorNumber) {
       const currentFloor = elevator.currentFloor()
+      console.group(
+        '%o - elevator %o floor %o (requested %o)',
+        'elevator-button',
+        this.elevators.indexOf(elevator),
+        currentFloor,
+        floorNumber,
+      )
 
-      const logPrefix = this.#logPrefix({ module: 'elevator-button', elevator, floor: currentFloor })
-      this.#log(logPrefix, 'info', 'Elevator button for floor %o pressed on %o', floorNumber, currentFloor)
+      console.info('Elevator button for floor %o pressed on %o', floorNumber, currentFloor)
       if (elevator.destinationQueue.includes(floorNumber)) {
-        this.#log(logPrefix, 'info', '...but floor %o is already in the queue', floorNumber)
+        console.info('...but floor %o is already in the queue', floorNumber)
+        console.groupEnd()
         return
       }
 
       const { destinationQueue } = elevator
 
-      this.#log(logPrefix, 'info', 'add floor %o to queue', floorNumber)
+      console.info('add floor %o to queue', floorNumber)
       const queuedFloors = this.#addFloorToQueue(floorNumber, currentFloor, destinationQueue)
       elevator.destinationQueue = queuedFloors
       const direction = this.#directionFromQueue(currentFloor, queuedFloors)
       elevator.checkDestinationQueue()
-      this.#log(logPrefix, 'info', 'destination queue', elevator.destinationQueue)
+      console.info('destination queue', elevator.destinationQueue)
 
       elevator.goingUpIndicator(direction === 'up')
       elevator.goingDownIndicator(direction === 'down')
+
+      console.groupEnd()
     }
 
 
@@ -135,15 +150,23 @@
      * @returns
      */
     elevatorPassingFloor(elevator, floorNumber, direction) {
-      const logPrefix = this.#logPrefix({ module: 'passing', elevator, floor: floorNumber })
-      this.#log(logPrefix, 'info', 'Passing floor, direction %o', direction)
+      console.group(
+        '%o - elevator %o passing floor %o going %o',
+        'passing-floor',
+        this.elevators.indexOf(elevator),
+        floorNumber,
+        direction,
+      )
+      console.info('Passing floor, direction %o', direction)
 
       if (elevator.destinationQueue.includes(floorNumber)) {
-        this.#log(logPrefix, 'info', 'Already in destination queue')
+        console.info('Already in destination queue')
+        console.groupEnd()
         return
       }
       if (elevator.loadFactor() >= 0.9) {
-        this.#log(logPrefix, 'info', 'Elevator too full to stop')
+        console.info('Elevator too full to stop')
+        console.groupEnd()
         return // Skip if elevator is too full
       }
 
@@ -151,14 +174,17 @@
       const goingDownRequested = direction === 'down' && this.floorDownRequests.includes(floorNumber)
 
       if (!goingUpRequested && !goingDownRequested) {
-        this.#log(logPrefix, 'info', 'No request for this floor')
+        console.info('No request for this floor')
+        console.groupEnd()
         return
       }
 
       const floorRequestList = goingUpRequested ? this.floorUpRequests : this.floorDownRequests
       floorRequestList.splice(floorRequestList.indexOf(floorNumber), 1)
-      this.#log(logPrefix, 'info', 'Stop at this floor')
+      console.info('Stop at this floor')
       elevator.goToFloor(floorNumber, true)
+
+      console.groupEnd()
     }
 
 
@@ -167,11 +193,15 @@
      * @param {number} floorNumber
      */
     elevatorStoppedAtFloor(elevator, floorNumber) {
-      const logPrefix = this.#logPrefix({ module: 'stopped', elevator, floor: floorNumber })
-
-      this.#log(logPrefix, 'info', 'Stopped')
+      console.group(
+        '%o - elevator %o stopped at floor %o',
+        'stopped-at-floor',
+        this.elevators.indexOf(elevator),
+        floorNumber,
+      )
+      console.info('Stopped')
       if (elevator.destinationQueue.length === 0) {
-        this.#log(logPrefix, 'info', 'Destination queue empty')
+        console.info('Destination queue empty')
 
         if (elevator.destinationQueue.length === 0) {
           if (this.floorUpRequests.includes(floorNumber)) {
@@ -185,6 +215,7 @@
         elevator.goingUpIndicator(floorNumber < this.highestFloor)
         elevator.goingDownIndicator(floorNumber > 0)
       }
+      console.groupEnd()
     }
 
 
@@ -227,36 +258,6 @@
     #directionFromQueue(currentFloor, destinationQueue) {
       const [nextDestination] = destinationQueue
       return currentFloor < nextDestination ? 'up' : 'down'
-    }
-
-
-    /**
-     * @param {{
-     *   module: string,
-     *   floor?: any,
-     *   elevator?: any,
-     * }} config
-     * @returns {[string, any[]]}
-     */
-    #logPrefix({ module, floor, elevator }) {
-      const parts = []
-      if (floor !== undefined) parts.push([' f: %o', floor])
-      if (elevator !== undefined) {
-        parts.push([' e: %o', this.elevators.indexOf(elevator)])
-      }
-      parts.push([' %o', module])
-
-      return [
-        `[${
-          parts.map(([log]) => log).join('')
-        }]`,
-        parts.map(([, value]) => value),
-      ]
-    }
-
-
-    #log([prefix, prefixValues], level, message, ...arguments_) {
-      console[level](`${prefix} ${message}`, ...prefixValues, ...arguments_)
     }
   }
 
