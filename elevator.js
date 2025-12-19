@@ -82,25 +82,21 @@
       if (nearestRequestedFloor === currentFloor) {
         if (this.floorUpRequests.includes(currentFloor)) {
           this.floorUpRequests.splice(this.floorUpRequests.indexOf(currentFloor), 1)
-          elevator.goingUpIndicator(true)
-          elevator.goingDownIndicator(false)
-
-          console.debug('set going up indicator')
+          console.debug('removed up request for current floor')
         } else {
           this.floorDownRequests.splice(this.floorDownRequests.indexOf(currentFloor), 1)
-          elevator.goingUpIndicator(false)
-          elevator.goingDownIndicator(true)
-
-          console.debug('set going down indicator')
+          console.debug('removed down request for current floor')
         }
+
+        this.#updateDirectionIndicators(elevator)
         console.groupEnd()
         return
       }
 
       if (nearestRequestedFloor !== undefined && nearestRequestedFloor !== currentFloor) {
         console.info('...but now goes to requested floor %o', nearestRequestedFloor)
-        // Do we need to take care of direction indicators here?
         elevator.goToFloor(nearestRequestedFloor)
+        this.#updateDirectionIndicators(elevator)
       }
       console.groupEnd()
     }
@@ -132,12 +128,10 @@
       console.info('add floor %o to queue', floorNumber)
       const queuedFloors = this.#addFloorToQueue(floorNumber, currentFloor, destinationQueue)
       elevator.destinationQueue = queuedFloors
-      const direction = this.#directionFromQueue(currentFloor, queuedFloors)
       elevator.checkDestinationQueue()
       console.info('destination queue', elevator.destinationQueue)
 
-      elevator.goingUpIndicator(direction === 'up')
-      elevator.goingDownIndicator(direction === 'down')
+      this.#updateDirectionIndicators(elevator)
 
       console.groupEnd()
     }
@@ -203,17 +197,14 @@
       if (elevator.destinationQueue.length === 0) {
         console.info('Destination queue empty')
 
-        if (elevator.destinationQueue.length === 0) {
-          if (this.floorUpRequests.includes(floorNumber)) {
-            this.floorUpRequests.splice(this.floorUpRequests.indexOf(floorNumber), 1)
-          }
-          if (this.floorDownRequests.includes(floorNumber)) {
-            this.floorDownRequests.splice(this.floorDownRequests.indexOf(floorNumber), 1)
-          }
+        if (this.floorUpRequests.includes(floorNumber)) {
+          this.floorUpRequests.splice(this.floorUpRequests.indexOf(floorNumber), 1)
+        }
+        if (this.floorDownRequests.includes(floorNumber)) {
+          this.floorDownRequests.splice(this.floorDownRequests.indexOf(floorNumber), 1)
         }
 
-        elevator.goingUpIndicator(floorNumber < this.highestFloor)
-        elevator.goingDownIndicator(floorNumber > 0)
+        this.#updateDirectionIndicators(elevator, floorNumber)
       }
       console.groupEnd()
     }
@@ -226,6 +217,51 @@
         highestFloor = Math.max(highestFloor, floorNumber)
       }
       return highestFloor
+    }
+
+
+    #updateDirectionIndicators(elevator, floorNumber) {
+      const currentFloor = elevator.currentFloor()
+      console.group(
+        '%o - elevator %o update direction indicators at floor %o',
+        'update-indicators',
+        this.elevators.indexOf(elevator),
+        currentFloor,
+      )
+      const { destinationQueue } = elevator
+
+      if (destinationQueue.length > 0) {
+        const direction = this.#directionFromQueue(currentFloor, destinationQueue)
+        elevator.goingUpIndicator(direction === 'up')
+        elevator.goingDownIndicator(direction === 'down')
+        console.debug('Direction from queue: %o', direction)
+        console.groupEnd()
+        return
+      }
+
+      const hasUpRequest = this.floorUpRequests.includes(currentFloor)
+      const hasDownRequest = this.floorDownRequests.includes(currentFloor)
+
+      if (hasUpRequest && !hasDownRequest) {
+        elevator.goingUpIndicator(true)
+        elevator.goingDownIndicator(false)
+        console.debug('Direction: up (current floor up request)')
+      } else if (hasDownRequest && !hasUpRequest) {
+        elevator.goingUpIndicator(false)
+        elevator.goingDownIndicator(true)
+        console.debug('Direction: down (current floor down request)')
+      } else if (hasUpRequest && hasDownRequest) {
+        const goUp = currentFloor < this.highestFloor / 2
+        elevator.goingUpIndicator(goUp)
+        elevator.goingDownIndicator(!goUp)
+        console.debug('Direction: %o (both requests, position-based)', goUp ? 'up' : 'down')
+      } else {
+        const referenceFloor = floorNumber === null ? currentFloor : floorNumber
+        elevator.goingUpIndicator(referenceFloor < this.highestFloor)
+        elevator.goingDownIndicator(referenceFloor > 0)
+        console.debug('Direction: fallback (position-based, floor: %o)', referenceFloor)
+      }
+      console.groupEnd()
     }
 
 
