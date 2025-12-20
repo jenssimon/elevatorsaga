@@ -286,7 +286,7 @@ describe('stopped at floor', () => {
 
 
 describe('passing floor', () => {
-  it.skip('should stop at requested floor when going up', () => {
+  it.todo('should stop at requested floor when going up', () => {
     const floors = generateFloors(4)
     const myFloor = floors.find((f) => f.floorNum() === 2)
     const elevator = new Elevator()
