@@ -21,25 +21,8 @@
 
       /* floor handlers */
       for (const floor of this.floors) {
-        const floorNumber = floor.floorNum()
-        floor.on('up_button_pressed', () => {
-          console.group('%o - floor %o', 'button-up', floorNumber)
-          console.info('floor up pressed')
-          if (!this.floorUpRequests.includes(floorNumber)) {
-            this.floorUpRequests.push(floorNumber)
-            console.info('floor up request added')
-          }
-          console.groupEnd()
-        })
-        floor.on('down_button_pressed', () => {
-          console.group('%o - floor %o', 'button-down', floorNumber)
-          console.info('floor down pressed')
-          if (!this.floorDownRequests.includes(floorNumber)) {
-            this.floorDownRequests.push(floorNumber)
-            console.info('floor down request added')
-          }
-          console.groupEnd()
-        })
+        floor.on('up_button_pressed', () => this.floorButtonPressed(floor, 'up'))
+        floor.on('down_button_pressed', () => this.floorButtonPressed(floor, 'down'))
       }
     }
 
@@ -51,6 +34,26 @@
      */
     update(_dt, _elevators, _floors) {
       // Nothing yet!
+    }
+
+
+    /**
+     * @param {Floor} floor
+     * @param {Direction} direction
+     */
+    floorButtonPressed(floor, direction) {
+      const floorNumber = floor.floorNum()
+
+      console.group('%o - floor %o', `button-${direction}`, floorNumber)
+      console.info(`floor ${direction} pressed`)
+
+      const queue = direction === 'up' ? this.floorUpRequests : this.floorDownRequests
+      if (!queue.includes(floorNumber)) {
+        queue.push(floorNumber)
+        console.info(`floor ${direction} request added`)
+      }
+
+      console.groupEnd()
     }
 
 
@@ -89,6 +92,7 @@
         }
 
         this.#updateDirectionIndicators(elevator)
+
         console.groupEnd()
         return
       }
@@ -98,6 +102,7 @@
         elevator.goToFloor(nearestRequestedFloor)
         this.#updateDirectionIndicators(elevator)
       }
+
       console.groupEnd()
     }
 
@@ -119,6 +124,7 @@
       console.info('Elevator button for floor %o pressed on %o', floorNumber, currentFloor)
       if (elevator.destinationQueue.includes(floorNumber)) {
         console.info('...but floor %o is already in the queue', floorNumber)
+
         console.groupEnd()
         return
       }
@@ -126,6 +132,7 @@
       const { destinationQueue } = elevator
 
       console.info('add floor %o to queue', floorNumber)
+
       const queuedFloors = this.#addFloorToQueue(floorNumber, currentFloor, destinationQueue)
       elevator.destinationQueue = queuedFloors
       elevator.checkDestinationQueue()
@@ -155,11 +162,13 @@
 
       if (elevator.destinationQueue.includes(floorNumber)) {
         console.info('Already in destination queue')
+
         console.groupEnd()
         return
       }
       if (elevator.loadFactor() >= 0.9) {
         console.info('Elevator too full to stop')
+
         console.groupEnd()
         return // Skip if elevator is too full
       }
@@ -169,6 +178,7 @@
 
       if (!goingUpRequested && !goingDownRequested) {
         console.info('No request for this floor')
+
         console.groupEnd()
         return
       }
@@ -194,6 +204,7 @@
         floorNumber,
       )
       console.info('Stopped')
+
       if (elevator.destinationQueue.length === 0) {
         console.info('Destination queue empty')
 
@@ -206,6 +217,7 @@
 
         this.#updateDirectionIndicators(elevator, floorNumber)
       }
+
       console.groupEnd()
     }
 
@@ -222,12 +234,14 @@
 
     #updateDirectionIndicators(elevator, floorNumber) {
       const currentFloor = elevator.currentFloor()
+
       console.group(
         '%o - elevator %o update direction indicators at floor %o',
         'update-indicators',
         this.elevators.indexOf(elevator),
         currentFloor,
       )
+
       const { destinationQueue } = elevator
 
       if (destinationQueue.length > 0) {
@@ -245,22 +259,27 @@
       if (hasUpRequest && !hasDownRequest) {
         elevator.goingUpIndicator(true)
         elevator.goingDownIndicator(false)
+
         console.debug('Direction: up (current floor up request)')
       } else if (hasDownRequest && !hasUpRequest) {
         elevator.goingUpIndicator(false)
         elevator.goingDownIndicator(true)
+
         console.debug('Direction: down (current floor down request)')
       } else if (hasUpRequest && hasDownRequest) {
         const goUp = currentFloor < this.highestFloor / 2
         elevator.goingUpIndicator(goUp)
         elevator.goingDownIndicator(!goUp)
+
         console.debug('Direction: %o (both requests, position-based)', goUp ? 'up' : 'down')
       } else {
         const referenceFloor = floorNumber === null ? currentFloor : floorNumber
         elevator.goingUpIndicator(referenceFloor < this.highestFloor)
         elevator.goingDownIndicator(referenceFloor > 0)
+
         console.debug('Direction: fallback (position-based, floor: %o)', referenceFloor)
       }
+
       console.groupEnd()
     }
 
