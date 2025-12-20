@@ -1093,7 +1093,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vitest/coverage-v8@npm:4.0.16":
+"@vitest/coverage-v8@npm:^4.0.16":
   version: 4.0.16
   resolution: "@vitest/coverage-v8@npm:4.0.16"
   dependencies:
@@ -1604,7 +1604,7 @@ __metadata:
     "@jenssimon/eslint-config-base": "npm:^10.0.2"
     "@stylistic/eslint-plugin": "npm:^3.1.0"
     "@types/node": "npm:^24.10.4"
-    "@vitest/coverage-v8": "npm:4.0.16"
+    "@vitest/coverage-v8": "npm:^4.0.16"
     "@vitest/eslint-plugin": "npm:^1.5.2"
     eslint: "npm:^9.39.2"
     eslint-config-airbnb-extended: "npm:^2.3.3"
