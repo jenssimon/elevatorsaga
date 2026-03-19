@@ -1,7 +1,7 @@
 {
   "name": "elevatorsaga",
   "license": "MIT",
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.13.0",
   "type": "module",
   "private": true,
   "main": "elevator.js",
