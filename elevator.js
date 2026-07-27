@@ -8,7 +8,9 @@
       this.elevators = elevators
       this.floors = floors
 
+      /** @type {number[]} */
       this.floorUpRequests = []
+      /** @type {number[]} */
       this.floorDownRequests = []
 
       /* elevator handlers */
@@ -24,6 +26,105 @@
         floor.on('up_button_pressed', () => this.floorButtonPressed(floor, 'up'))
         floor.on('down_button_pressed', () => this.floorButtonPressed(floor, 'down'))
       }
+    }
+
+
+    /**
+     * @param {Elevator} elevator
+     * @param {number|undefined} floorNumber
+     */
+    // eslint-disable-next-line unicorn/no-useless-undefined
+    #updateDirectionIndicators(elevator, floorNumber = undefined) {
+      const currentFloor = elevator.currentFloor()
+
+      console.group(
+        '%o - elevator %o update direction indicators at floor %o',
+        'update-indicators',
+        this.elevators.indexOf(elevator),
+        currentFloor,
+      )
+
+      const { destinationQueue } = elevator
+
+      if (destinationQueue.length > 0) {
+        const direction = this.#directionFromQueue(currentFloor, destinationQueue)
+        elevator.goingUpIndicator(direction === 'up')
+        elevator.goingDownIndicator(direction === 'down')
+        console.debug('Direction from queue: %o', direction)
+        console.groupEnd()
+        return
+      }
+
+      const hasUpRequest = this.floorUpRequests.includes(currentFloor)
+      const hasDownRequest = this.floorDownRequests.includes(currentFloor)
+
+      if (hasUpRequest && !hasDownRequest) {
+        elevator.goingUpIndicator(true)
+        elevator.goingDownIndicator(false)
+
+        console.debug('Direction: up (current floor up request)')
+      } else if (hasDownRequest && !hasUpRequest) {
+        elevator.goingUpIndicator(false)
+        elevator.goingDownIndicator(true)
+
+        console.debug('Direction: down (current floor down request)')
+      } else if (hasUpRequest && hasDownRequest) {
+        const isGoUp = currentFloor < this.highestFloor / 2
+        elevator.goingUpIndicator(isGoUp)
+        elevator.goingDownIndicator(!isGoUp)
+
+        console.debug('Direction: %o (both requests, position-based)', isGoUp ? 'up' : 'down')
+      } else {
+        const referenceFloor = floorNumber === undefined ? currentFloor : floorNumber
+        elevator.goingUpIndicator(referenceFloor < this.highestFloor)
+        elevator.goingDownIndicator(referenceFloor > 0)
+
+        console.debug('Direction: fallback (position-based, floor: %o)', referenceFloor)
+      }
+
+      console.groupEnd()
+    }
+
+    /**
+     * @param {number} floorNumber
+     * @param {number} currentFloor
+     * @param {number[]} destinationQueue
+     */
+    #addFloorToQueue(floorNumber, currentFloor, destinationQueue) {
+      const direction = this.#directionFromQueue(currentFloor, destinationQueue)
+      const unsortedQueueWithNewFloor = [
+        ...destinationQueue,
+        floorNumber,
+      ]
+
+      /** @type {number[]} */
+      const floorsInDirection = []
+      /** @type {number[]} */
+      const floorsAgainstDirection = []
+
+      for (const floor of unsortedQueueWithNewFloor) {
+        if (direction === 'up') {
+          (floor >= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
+        } else {
+          (floor <= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
+        }
+      }
+
+      const sortedInDirection = floorsInDirection.toSorted((a, b) => (direction === 'up' ? a - b : b - a))
+      const sortedAgainstDirection = floorsAgainstDirection.toSorted((a, b) => (direction === 'up' ? b - a : a - b))
+
+      const queuedFloors = [...sortedInDirection, ...sortedAgainstDirection]
+      return queuedFloors
+    }
+
+
+    /**
+    * @param {number} currentFloor
+    * @param {number[]} destinationQueue
+    */
+    #directionFromQueue(currentFloor, destinationQueue) {
+      const [nextDestination] = destinationQueue
+      return currentFloor < nextDestination ? 'up' : 'down'
     }
 
 
@@ -230,93 +331,9 @@
       }
       return highestFloor
     }
-
-
-    #updateDirectionIndicators(elevator, floorNumber) {
-      const currentFloor = elevator.currentFloor()
-
-      console.group(
-        '%o - elevator %o update direction indicators at floor %o',
-        'update-indicators',
-        this.elevators.indexOf(elevator),
-        currentFloor,
-      )
-
-      const { destinationQueue } = elevator
-
-      if (destinationQueue.length > 0) {
-        const direction = this.#directionFromQueue(currentFloor, destinationQueue)
-        elevator.goingUpIndicator(direction === 'up')
-        elevator.goingDownIndicator(direction === 'down')
-        console.debug('Direction from queue: %o', direction)
-        console.groupEnd()
-        return
-      }
-
-      const hasUpRequest = this.floorUpRequests.includes(currentFloor)
-      const hasDownRequest = this.floorDownRequests.includes(currentFloor)
-
-      if (hasUpRequest && !hasDownRequest) {
-        elevator.goingUpIndicator(true)
-        elevator.goingDownIndicator(false)
-
-        console.debug('Direction: up (current floor up request)')
-      } else if (hasDownRequest && !hasUpRequest) {
-        elevator.goingUpIndicator(false)
-        elevator.goingDownIndicator(true)
-
-        console.debug('Direction: down (current floor down request)')
-      } else if (hasUpRequest && hasDownRequest) {
-        const goUp = currentFloor < this.highestFloor / 2
-        elevator.goingUpIndicator(goUp)
-        elevator.goingDownIndicator(!goUp)
-
-        console.debug('Direction: %o (both requests, position-based)', goUp ? 'up' : 'down')
-      } else {
-        const referenceFloor = floorNumber === null ? currentFloor : floorNumber
-        elevator.goingUpIndicator(referenceFloor < this.highestFloor)
-        elevator.goingDownIndicator(referenceFloor > 0)
-
-        console.debug('Direction: fallback (position-based, floor: %o)', referenceFloor)
-      }
-
-      console.groupEnd()
-    }
-
-
-    #addFloorToQueue(floorNumber, currentFloor, destinationQueue) {
-      const direction = this.#directionFromQueue(currentFloor, destinationQueue)
-      const unsortedQueueWithNewFloor = [
-        ...destinationQueue,
-        floorNumber,
-      ]
-
-      const floorsInDirection = []
-      const floorsAgainstDirection = []
-
-      for (const floor of unsortedQueueWithNewFloor) {
-        if (direction === 'up') {
-          (floor >= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
-        } else {
-          (floor <= currentFloor ? floorsInDirection : floorsAgainstDirection).push(floor)
-        }
-      }
-
-      const sortedInDirection = floorsInDirection.toSorted((a, b) => (direction === 'up' ? a - b : b - a))
-      const sortedAgainstDirection = floorsAgainstDirection.toSorted((a, b) => (direction === 'up' ? b - a : a - b))
-
-      const queuedFloors = [...sortedInDirection, ...sortedAgainstDirection]
-      return queuedFloors
-    }
-
-
-    #directionFromQueue(currentFloor, destinationQueue) {
-      const [nextDestination] = destinationQueue
-      return currentFloor < nextDestination ? 'up' : 'down'
-    }
   }
 
-
+  /** @type {ElevatorSaga?} */
   let elevatorSaga
 
   /** @type {ProgramInitCallback} */
@@ -332,8 +349,8 @@
   }
 
   const elevator = { init, update }
-  /* v8 ignore else -- @preserve */
   if (globalThis.process?.env.NODE_ENV === 'test') {
+    // eslint-disable-next-line unicorn/no-global-object-property-assignment
     globalThis.elevator = elevator
   }
   return elevator

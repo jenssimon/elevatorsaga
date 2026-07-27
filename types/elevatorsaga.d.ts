@@ -7,14 +7,14 @@
 type Direction = 'down' | 'up'
 
 type ElevatorIdleEventCallback = () => void
-type ElevatorFloorButtonPressedCallback = (floorNum: number) => void
+type ElevatorFloorButtonPressedCallback = (floorNumber: number) => void
 
 type ElevatorPassingFloorCallback = (
-  floorNum: number,
+  floorNumber: number,
   direction: Direction,
 ) => void
 
-type ElevatorStoppedAtFloorCallback = (floorNum: number) => void
+type ElevatorStoppedAtFloorCallback = (floorNumber: number) => void
 
 type FloorUpButtonPressedCallback = () => void
 type FloorDownButtonPressedCallback = () => void
@@ -30,7 +30,7 @@ interface Elevator {
    * elevator.goToFloor(2, true) // Do it before anything else
    * ```
    */
-  goToFloor (floorNum: number, directly?: boolean): void,
+  goToFloor (floorNumber: number, directly?: boolean): void,
 
   /**
    * Clear the destination queue and stop the elevator if it is moving. Note
