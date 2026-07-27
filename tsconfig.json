@@ -3,10 +3,9 @@
     "target": "esnext",
     "checkJs": true,
     "allowJs": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "noEmit": true,
-    "baseUrl": "."
   },
   "include": [
     "**/*",

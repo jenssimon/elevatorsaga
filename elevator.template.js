@@ -26,7 +26,7 @@
     }
   }
 
-
+  /** @type {ElevatorSaga?} */
   let elevatorSaga
 
   /** @type {ProgramInitCallback} */
@@ -44,6 +44,7 @@
   const elevator = { init, update }
   /* v8 ignore else -- @preserve */
   if (globalThis.process?.env.NODE_ENV === 'test') {
+    // eslint-disable-next-line unicorn/no-global-object-property-assignment
     globalThis.elevator = elevator
   }
   return elevator

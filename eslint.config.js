@@ -51,6 +51,7 @@ export default defineConfig(
       'import-x/no-extraneous-dependencies': 'off',
       'no-console': 'off',
       'no-restricted-syntax': 'off',
+      'unicorn/consistent-boolean-name': 'off',
     },
   },
 

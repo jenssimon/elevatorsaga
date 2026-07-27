@@ -1,7 +1,7 @@
 {
   "name": "elevatorsaga",
   "license": "MIT",
-  "packageManager": "yarn@4.15.0",
+  "packageManager": "yarn@4.17.1",
   "type": "module",
   "private": true,
   "main": "elevator.js",
@@ -22,7 +22,7 @@
     "globals": "^17.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.0",
-    "typescript": "^6.0.0",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vitest": "^4.0.15"
   }
 }
