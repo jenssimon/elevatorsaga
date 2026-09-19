@@ -26,16 +26,22 @@
     }
   }
 
-  /** @type {ElevatorSaga?} */
+  /**
+   * @type {ElevatorSaga?}
+   */
   let elevatorSaga
 
-  /** @type {ProgramInitCallback} */
+  /**
+   * @type {ProgramInitCallback}
+   */
   const init = (elevators, floors) => {
     elevatorSaga = new ElevatorSaga(elevators, floors)
   }
 
 
-  /** @type {ProgramUpdateCallback} */
+  /**
+   * @type {ProgramUpdateCallback}
+   */
   const update = (dt, elevators, floors) => {
     if (!elevatorSaga) return
     elevatorSaga.update(dt, elevators, floors)

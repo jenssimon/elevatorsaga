@@ -1,7 +1,9 @@
 export default class Elevator {
   constructor() {
     this.destinationQueue = []
-    /** @type {Record<string, Function>} */
+    /**
+     * @type {Record<string, Function>}
+     */
     this.eventHandlers = {}
     this.goingUp = true
     this.goingDown = true

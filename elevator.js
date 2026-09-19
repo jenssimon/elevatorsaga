@@ -8,12 +8,18 @@
       this.elevators = elevators
       this.floors = floors
 
-      /** @type {number[]} */
+      /**
+       * @type {number[]}
+       */
       this.floorUpRequests = []
-      /** @type {number[]} */
+      /**
+       * @type {number[]}
+       */
       this.floorDownRequests = []
 
-      /* elevator handlers */
+      /*
+       * elevator handlers
+       */
       for (const elevator of this.elevators) {
         elevator.on('idle', () => this.elevatorIdle(elevator))
         elevator.on('floor_button_pressed', (...arguments_) => this.elevatorFloorButtonPressed(elevator, ...arguments_))
@@ -21,7 +27,9 @@
         elevator.on('stopped_at_floor', (...arguments_) => this.elevatorStoppedAtFloor(elevator, ...arguments_))
       }
 
-      /* floor handlers */
+      /*
+       * floor handlers
+       */
       for (const floor of this.floors) {
         floor.on('up_button_pressed', () => this.floorButtonPressed(floor, 'up'))
         floor.on('down_button_pressed', () => this.floorButtonPressed(floor, 'down'))
@@ -97,9 +105,13 @@
         floorNumber,
       ]
 
-      /** @type {number[]} */
+      /**
+       * @type {number[]}
+       */
       const floorsInDirection = []
-      /** @type {number[]} */
+      /**
+       * @type {number[]}
+       */
       const floorsAgainstDirection = []
 
       for (const floor of unsortedQueueWithNewFloor) {
@@ -333,16 +345,22 @@
     }
   }
 
-  /** @type {ElevatorSaga?} */
+  /**
+   * @type {ElevatorSaga?}
+   */
   let elevatorSaga
 
-  /** @type {ProgramInitCallback} */
+  /**
+   * @type {ProgramInitCallback}
+   */
   const init = (elevators, floors) => {
     elevatorSaga = new ElevatorSaga(elevators, floors)
   }
 
 
-  /** @type {ProgramUpdateCallback} */
+  /**
+   * @type {ProgramUpdateCallback}
+   */
   const update = (dt, elevators, floors) => {
     if (!elevatorSaga) return
     elevatorSaga.update(dt, elevators, floors)
