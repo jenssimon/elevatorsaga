@@ -1,9 +1,9 @@
 (() => {
   class ElevatorSaga {
     /**
-     * @param {readonly Elevator[]} elevators
-     * @param {readonly Floor[]} _floors
-     */
+    @param {readonly Elevator[]} elevators
+    @param {readonly Floor[]} _floors
+    */
     constructor(elevators, _floors) {
       const [elevator] = elevators // Let's use the first elevator
 
@@ -17,31 +17,31 @@
 
 
     /**
-     * @param {Number} _dt
-     * @param {readonly Elevator[]} _elevators
-     * @param {readonly Floor[]} _floors
-     */
+    @param {Number} _dt
+    @param {readonly Elevator[]} _elevators
+    @param {readonly Floor[]} _floors
+    */
     update(_dt, _elevators, _floors) {
       // Nothing yet!
     }
   }
 
   /**
-   * @type {ElevatorSaga?}
-   */
+  @type {ElevatorSaga?}
+  */
   let elevatorSaga
 
   /**
-   * @type {ProgramInitCallback}
-   */
+  @type {ProgramInitCallback}
+  */
   const init = (elevators, floors) => {
     elevatorSaga = new ElevatorSaga(elevators, floors)
   }
 
 
   /**
-   * @type {ProgramUpdateCallback}
-   */
+  @type {ProgramUpdateCallback}
+  */
   const update = (dt, elevators, floors) => {
     if (!elevatorSaga) return
     elevatorSaga.update(dt, elevators, floors)

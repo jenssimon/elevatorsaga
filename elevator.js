@@ -1,20 +1,20 @@
 (() => {
   class ElevatorSaga {
     /**
-     * @param {readonly Elevator[]} elevators
-     * @param {readonly Floor[]} floors
-     */
+    @param {readonly Elevator[]} elevators
+    @param {readonly Floor[]} floors
+    */
     constructor(elevators, floors) {
       this.elevators = elevators
       this.floors = floors
 
       /**
-       * @type {number[]}
-       */
+      @type {number[]}
+      */
       this.floorUpRequests = []
       /**
-       * @type {number[]}
-       */
+      @type {number[]}
+      */
       this.floorDownRequests = []
 
       /*
@@ -38,9 +38,9 @@
 
 
     /**
-     * @param {Elevator} elevator
-     * @param {number|undefined} floorNumber
-     */
+    @param {Elevator} elevator
+    @param {number|undefined} floorNumber
+    */
     // eslint-disable-next-line unicorn/no-useless-undefined
     #updateDirectionIndicators(elevator, floorNumber = undefined) {
       const currentFloor = elevator.currentFloor()
@@ -94,10 +94,10 @@
     }
 
     /**
-     * @param {number} floorNumber
-     * @param {number} currentFloor
-     * @param {number[]} destinationQueue
-     */
+    @param {number} floorNumber
+    @param {number} currentFloor
+    @param {number[]} destinationQueue
+    */
     #addFloorToQueue(floorNumber, currentFloor, destinationQueue) {
       const direction = this.#directionFromQueue(currentFloor, destinationQueue)
       const unsortedQueueWithNewFloor = [
@@ -106,12 +106,12 @@
       ]
 
       /**
-       * @type {number[]}
-       */
+      @type {number[]}
+      */
       const floorsInDirection = []
       /**
-       * @type {number[]}
-       */
+      @type {number[]}
+      */
       const floorsAgainstDirection = []
 
       for (const floor of unsortedQueueWithNewFloor) {
@@ -141,19 +141,19 @@
 
 
     /**
-     * @param {Number} _dt
-     * @param {readonly Elevator[]} _elevators
-     * @param {readonly Floor[]} _floors
-     */
+    @param {Number} _dt
+    @param {readonly Elevator[]} _elevators
+    @param {readonly Floor[]} _floors
+    */
     update(_dt, _elevators, _floors) {
       // Nothing yet!
     }
 
 
     /**
-     * @param {Floor} floor
-     * @param {Direction} direction
-     */
+    @param {Floor} floor
+    @param {Direction} direction
+    */
     floorButtonPressed(floor, direction) {
       const floorNumber = floor.floorNum()
 
@@ -171,8 +171,8 @@
 
 
     /**
-     * @param {Elevator} elevator
-     */
+    @param {Elevator} elevator
+    */
     elevatorIdle(elevator) {
       const currentFloor = elevator.currentFloor()
 
@@ -221,9 +221,9 @@
 
 
     /**
-     * @param {Elevator} elevator
-     * @param {number} floorNumber
-     */
+    @param {Elevator} elevator
+    @param {number} floorNumber
+    */
     elevatorFloorButtonPressed(elevator, floorNumber) {
       const currentFloor = elevator.currentFloor()
       console.group(
@@ -258,11 +258,11 @@
 
 
     /**
-     * @param {Elevator} elevator
-     * @param {number} floorNumber
-     * @param {Direction} direction
-     * @returns
-     */
+    @param {Elevator} elevator
+    @param {number} floorNumber
+    @param {Direction} direction
+    @returns
+    */
     elevatorPassingFloor(elevator, floorNumber, direction) {
       console.group(
         '%o - elevator %o passing floor %o going %o',
@@ -306,9 +306,9 @@
 
 
     /**
-     * @param {Elevator} elevator
-     * @param {number} floorNumber
-     */
+    @param {Elevator} elevator
+    @param {number} floorNumber
+    */
     elevatorStoppedAtFloor(elevator, floorNumber) {
       console.group(
         '%o - elevator %o stopped at floor %o',
@@ -346,21 +346,21 @@
   }
 
   /**
-   * @type {ElevatorSaga?}
-   */
+  @type {ElevatorSaga?}
+  */
   let elevatorSaga
 
   /**
-   * @type {ProgramInitCallback}
-   */
+  @type {ProgramInitCallback}
+  */
   const init = (elevators, floors) => {
     elevatorSaga = new ElevatorSaga(elevators, floors)
   }
 
 
   /**
-   * @type {ProgramUpdateCallback}
-   */
+  @type {ProgramUpdateCallback}
+  */
   const update = (dt, elevators, floors) => {
     if (!elevatorSaga) return
     elevatorSaga.update(dt, elevators, floors)

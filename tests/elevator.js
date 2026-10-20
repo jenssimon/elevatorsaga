@@ -2,17 +2,17 @@ export default class Elevator {
   constructor() {
     this.destinationQueue = []
     /**
-     * @type {Record<string, Function>}
-     */
+    @type {Record<string, Function>}
+    */
     this.eventHandlers = {}
     this.goingUp = true
     this.goingDown = true
   }
 
   /**
-   * @param {string} event
-   * @param {Function} handler
-   */
+  @param {string} event
+  @param {Function} handler
+  */
   on(event, handler) {
     this.eventHandlers[event] = handler
   }
@@ -26,8 +26,8 @@ export default class Elevator {
   }
 
   /**
-   * @param {boolean} [state]
-   */
+  @param {boolean} [state]
+  */
   goingUpIndicator(state) {
     if (state !== undefined) {
       this.goingUp = state
@@ -36,8 +36,8 @@ export default class Elevator {
   }
 
   /**
-   * @param {boolean} [state]
-   */
+  @param {boolean} [state]
+  */
   goingDownIndicator(state) {
     if (state !== undefined) {
       this.goingDown = state
