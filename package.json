@@ -13,7 +13,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.0",
     "@jenssimon/eslint-config-base": "^10.0.2",
-    "@types/node": "^24.10.4",
+    "@types/node": "^26.0.0",
     "@vitest/coverage-v8": "^5.0.0",
     "@vitest/eslint-plugin": "^1.5.2",
     "eslint": "^10.0.0",
